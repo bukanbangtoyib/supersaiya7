@@ -7,55 +7,86 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
 </head>
-<body class="bg-slate-950 text-slate-200 min-h-screen flex items-center justify-center p-4">
+<body class="bg-black text-zinc-200 min-h-screen flex items-center justify-center p-4">
 
-    <div class="max-w-md w-full bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-2xl space-y-5">
+    <div class="max-w-md w-full bg-zinc-950 border border-zinc-800 rounded-xl p-6 shadow-2xl space-y-5">
+        
         <div class="text-center">
-            <h1 class="text-xl font-black text-white tracking-wide uppercase">🔑 JuriScor Key Generator</h1>
-            <p class="text-xs text-slate-400 mt-1">Platform Cetak Lisensi Cepat via HP/Browser</p>
+            <h1 class="text-lg font-black text-white tracking-widest uppercase border-b border-zinc-800 pb-3">
+                KEY GENERATOR
+            </h1>
+            <p class="text-[11px] text-zinc-500 mt-2 tracking-wide font-medium">Platform Manajemen Lisensi Mandiri</p>
         </div>
 
-        <div class="space-y-1">
-            <label class="block text-xs font-bold text-slate-400 uppercase">Masukkan Machine ID Pembeli:</label>
-            <input type="text" id="input-hwid" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5 text-sm font-mono font-bold text-yellow-400 focus:outline-none focus:border-blue-500" placeholder="Contoh: xxxx-xxxx-xxxx-xxxx">
+        <div class="space-y-1.5">
+            <label class="block text-xs font-bold text-zinc-400 uppercase tracking-wider">Nama Customer / Lembaga:</label>
+            <input type="text" id="input-customer" class="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2.5 text-sm font-semibold text-white focus:outline-none focus:border-white transition-all placeholder-zinc-600" placeholder="Contoh: Perisai Diri Tenggilis">
         </div>
 
-        <button onclick="buatLisensiFisik()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl text-sm transition-all shadow-md uppercase tracking-wider">
-            ⚙️ Generate & Download File .key
+        <div class="space-y-1.5">
+            <label class="block text-xs font-bold text-zinc-400 uppercase tracking-wider">Machine ID Perangkat:</label>
+            <input type="text" id="input-hwid" class="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2.5 text-sm font-mono font-bold text-zinc-300 focus:outline-none focus:border-white transition-all placeholder-zinc-600" placeholder="Masukkan ID dari komputer klien">
+        </div>
+
+        <button onclick="buatLisensiFisik()" class="w-full bg-white hover:bg-zinc-200 text-black font-black py-3 px-4 rounded-lg text-xs transition-all shadow-md uppercase tracking-widest">
+            Generate & Download Kunci
         </button>
 
-        <div id="result-box" class="space-y-2 hidden">
-            <div class="border-t border-slate-800 my-4"></div>
-            <label class="block text-xs font-bold text-green-400 uppercase">Salinan Kode Teks Kunci:</label>
-            <textarea id="text-key-output" readonly class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs font-mono text-slate-300 h-20 focus:outline-none" onclick="this.select()"></textarea>
-            <button onclick="salinTeksKunci()" class="w-full bg-slate-700 hover:bg-slate-600 text-xs py-2 rounded-xl font-bold transition-all">📋 Salin Teks Kunci</button>
+        <div id="result-box" class="space-y-3 hidden">
+            <div class="border-t border-zinc-900 my-4"></div>
+            
+            <div class="bg-zinc-900/50 border border-zinc-800 rounded-lg p-2.5">
+                <p class="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">Target File Tujuan:</p>
+                <p id="target-filename" class="text-xs font-mono font-bold text-white mt-0.5"></p>
+            </div>
+
+            <div class="space-y-1.5">
+                <label class="block text-xs font-bold text-zinc-400 uppercase tracking-wider">Salinan Kode Teks Kunci:</label>
+                <textarea id="text-key-output" readonly class="w-full bg-black border border-zinc-800 rounded-lg p-3 text-xs font-mono text-zinc-400 h-20 focus:outline-none cursor-pointer" onclick="this.select()"></textarea>
+            </div>
+
+            <button onclick="salinTeksKunci()" class="w-full bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-white font-bold py-2 rounded-lg text-xs transition-all uppercase tracking-wider">
+                📋 Salin Teks Kunci
+            </button>
         </div>
     </div>
 
     <script>
-        // PENTING: String di bawah ini HARUS SAMA PERSIS dengan SECRET_SALT yang ada di server.js Anda!
+        // String ini HARUS SAMA PERSIS dengan SECRET_SALT yang ada di server.js Anda!
         const SECRET_SALT = 'KunciRahasiaAplikasiSilatAnda123!';
 
         function buatLisensiFisik() {
+            const customerName = document.getElementById('input-customer').value.trim();
             const hwId = document.getElementById('input-hwid').value.trim();
+
+            if (!customerName) {
+                alert("Mohon masukkan Nama Customer terlebih dahulu!");
+                return;
+            }
             if (!hwId) {
                 alert("Mohon masukkan Machine ID pembeli terlebih dahulu!");
                 return;
             }
 
-            // Membuat enkripsi HMAC-SHA256 yang identik dengan library 'crypto' milik Node.js
+            // 1. Memformat Nama File: Huruf kecil semua dan hapus spasi kosong
+            // Contoh: "Perisai Diri Tenggilis" -> "perisaidiritenggilis"
+            const cleanCustomerName = customerName.toLowerCase().replace(/\s+/g, '');
+            const finalFileName = `license-${cleanCustomerName}.key`;
+
+            // 2. Kriptografi HMAC-SHA256
             const hash = CryptoJS.HmacSHA256(hwId, SECRET_SALT);
             const licenseKeyString = CryptoJS.enc.Hex.stringify(hash);
 
-            // Tampilkan kotak teks hasil
+            // 3. Tampilkan Hasil Ringkasan di Layar
+            document.getElementById('target-filename').textContent = finalFileName;
             document.getElementById('text-key-output').value = licenseKeyString;
             document.getElementById('result-box').classList.remove('hidden');
 
-            // OTOMATIS DOWNLOAD SEBAGAI FILE 'license.key'
+            // 4. Proses Otomatis Download Berkas dengan Nama Dinamis
             const blob = new Blob([licenseKeyString], { type: 'text/plain' });
             const link = document.createElement('a');
             link.href = window.URL.createObjectURL(blob);
-            link.download = 'license.key';
+            link.download = finalFileName;
             link.click();
             window.URL.revokeObjectURL(link.href);
         }
