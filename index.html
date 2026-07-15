@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>License Key Generator Resmi</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+</head>
+<body class="bg-slate-950 text-slate-200 min-h-screen flex items-center justify-center p-4">
+
+    <div class="max-w-md w-full bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-2xl space-y-5">
+        <div class="text-center">
+            <h1 class="text-xl font-black text-white tracking-wide uppercase">🔑 JuriScor Key Generator</h1>
+            <p class="text-xs text-slate-400 mt-1">Platform Cetak Lisensi Cepat via HP/Browser</p>
+        </div>
+
+        <div class="space-y-1">
+            <label class="block text-xs font-bold text-slate-400 uppercase">Masukkan Machine ID Pembeli:</label>
+            <input type="text" id="input-hwid" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5 text-sm font-mono font-bold text-yellow-400 focus:outline-none focus:border-blue-500" placeholder="Contoh: xxxx-xxxx-xxxx-xxxx">
+        </div>
+
+        <button onclick="buatLisensiFisik()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl text-sm transition-all shadow-md uppercase tracking-wider">
+            ⚙️ Generate & Download File .key
+        </button>
+
+        <div id="result-box" class="space-y-2 hidden">
+            <div class="border-t border-slate-800 my-4"></div>
+            <label class="block text-xs font-bold text-green-400 uppercase">Salinan Kode Teks Kunci:</label>
+            <textarea id="text-key-output" readonly class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs font-mono text-slate-300 h-20 focus:outline-none" onclick="this.select()"></textarea>
+            <button onclick="salinTeksKunci()" class="w-full bg-slate-700 hover:bg-slate-600 text-xs py-2 rounded-xl font-bold transition-all">📋 Salin Teks Kunci</button>
+        </div>
+    </div>
+
+    <script>
+        // PENTING: String di bawah ini HARUS SAMA PERSIS dengan SECRET_SALT yang ada di server.js Anda!
+        const SECRET_SALT = 'KunciRahasiaAplikasiSilatAnda123!';
+
+        function buatLisensiFisik() {
+            const hwId = document.getElementById('input-hwid').value.trim();
+            if (!hwId) {
+                alert("Mohon masukkan Machine ID pembeli terlebih dahulu!");
+                return;
+            }
+
+            // Membuat enkripsi HMAC-SHA256 yang identik dengan library 'crypto' milik Node.js
+            const hash = CryptoJS.HmacSHA256(hwId, SECRET_SALT);
+            const licenseKeyString = CryptoJS.enc.Hex.stringify(hash);
+
+            // Tampilkan kotak teks hasil
+            document.getElementById('text-key-output').value = licenseKeyString;
+            document.getElementById('result-box').classList.remove('hidden');
+
+            // OTOMATIS DOWNLOAD SEBAGAI FILE 'license.key'
+            const blob = new Blob([licenseKeyString], { type: 'text/plain' });
+            const link = document.createElement('a');
+            link.href = window.URL.createObjectURL(blob);
+            link.download = 'license.key';
+            link.click();
+            window.URL.revokeObjectURL(link.href);
+        }
+
+        function salinTeksKunci() {
+            const output = document.getElementById('text-key-output');
+            output.select();
+            document.execCommand('copy');
+            alert('Teks kunci lisensi berhasil disalin!');
+        }
+    </script>
+</body>
+</html>
